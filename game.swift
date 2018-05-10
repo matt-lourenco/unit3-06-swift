@@ -6,19 +6,26 @@
 //  Copyright © 2018 MTHS. All rights reserved.
 //
 
-enum Shapes {
-	case VOID (0)
-	case O (-1)
-	case X (1)
-	
-	var score: Int = 0
-	
-	init(inScore: Int) {
-		//Sets the score related to each shape
-		score = inScore
-	}
-	
-	func getScore() -> Int{ return score } //Getter
+// Extension retrieved from this source:
+// https://stackoverflow.com/questions/45497705/subscript-is-unavailable-cannot-subscript-string-with-a-countableclosedrange
+extension String {
+    subscript (bounds: CountableClosedRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start...end])
+    }
+
+    subscript (bounds: CountableRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start..<end])
+    }
+}
+
+enum Shapes: Int {
+	case VOID = 0
+	case O = -1
+	case X = 1
 }
 
 public class Game {
@@ -28,12 +35,12 @@ public class Game {
 	/** This is a grid of shapes used in a Tic Tac Toe game. The computer is
 	 * O and the user is X. x is vertical and positive in the downward
 	 * direction. y is horizontal and positive in the right direction. */
-	var grid: [[Shapes]]
+	var grid: [[Shapes]] = [[],[],[]]
 	
 	
 	/** This array keeps track of the chances to win when choosing
 	 *  Each tile on the grid.*/
-	var winChances: [[Int]]
+	var winChances: [[Int]] = [[],[],[]]
 	
 	
 	init() {
@@ -41,10 +48,8 @@ public class Game {
 		
 		//Fill grid with void and chances with 0
 		for row in 0...2 {
-			grid.append([])
-			winChances.append([])
-			for 0...2 {
-				grid[row].append(Shapes.VOID)
+			for _ in 0...2 {
+				grid[row].append(.VOID)
 				winChances[row].append(0)
 			}
 		}
@@ -69,7 +74,7 @@ public class Game {
 				printGrid(grid: grid)
 				placeShape()
 			}
-			filledTiles++
+			filledTiles += 1
 			cpuTurn = !cpuTurn
 		}
 		
@@ -87,10 +92,9 @@ public class Game {
 	func cloneGrid(grid: [[Shapes]]) -> [[Shapes]] {
 		//Create a clone of the inputted grid
 		
-		var gridClone: [[Shapes]]
+		var gridClone: [[Shapes]] = [[],[],[]]
 		
 		for row in 0...2 {
-			gridClone.append([])
 			for tile in 0...2 {
 				gridClone[row].append(grid[row][tile])
 			}
@@ -111,10 +115,10 @@ public class Game {
 			let input: String? = readLine(strippingNewline: true)
 			
 			if input != nil {
-				if input.count == 3 {
-					if Int(input[0..1]!) != nil && Int(input[2..3]!) != nil {
-						x = Int(input[0..1]!)!
-						y = Int(input[2..3]!)!
+				if input!.count == 3 {
+					if Int(String(input![0...0])) != nil && Int(String(input![2...2])) != nil {
+						x = Int(String(input![0...0]))!
+						y = Int(String(input![2...2]))!
 						
 						if x > 0 && x < 4 && y > 0 && y < 4 {
 							//Edit coordinate input to conform to setup of grid
@@ -164,28 +168,28 @@ public class Game {
 	func userClose(grid: [[Shapes]]) -> Bool {
 		//Finds if the winner a turn away from winning
 		
-		if grid[0][0].getScore() + grid[0][1].getScore() + grid[0][2].getScore() == 2 {
+		if grid[0][0].rawValue + grid[0][1].rawValue + grid[0][2].rawValue == 2 {
 			return true
-		} else if grid[1][0].getScore() + grid[1][1].getScore() + grid[1][2].getScore() == 2 {
+		} else if grid[1][0].rawValue + grid[1][1].rawValue + grid[1][2].rawValue == 2 {
 			return true
-		} else if grid[2][0].getScore() + grid[2][1].getScore() + grid[2][2].getScore() == 2 {
+		} else if grid[2][0].rawValue + grid[2][1].rawValue + grid[2][2].rawValue == 2 {
 			return true
-		} else if grid[0][0].getScore() + grid[1][0].getScore() + grid[2][0].getScore() == 2 {
+		} else if grid[0][0].rawValue + grid[1][0].rawValue + grid[2][0].rawValue == 2 {
 			return true
-		} else if grid[0][1].getScore() + grid[1][1].getScore() + grid[2][1].getScore() == 2 {
+		} else if grid[0][1].rawValue + grid[1][1].rawValue + grid[2][1].rawValue == 2 {
 			return true
-		} else if grid[0][2].getScore() + grid[1][2].getScore() + grid[2][2].getScore() == 2 {
+		} else if grid[0][2].rawValue + grid[1][2].rawValue + grid[2][2].rawValue == 2 {
 			return true
-		} else if grid[0][0].getScore() + grid[1][1].getScore() + grid[2][2].getScore() == 2 {
+		} else if grid[0][0].rawValue + grid[1][1].rawValue + grid[2][2].rawValue == 2 {
 			return true
-		} else if grid[0][2].getScore() + grid[1][1].getScore() + grid[2][0].getScore() == 2 {
+		} else if grid[0][2].rawValue + grid[1][1].rawValue + grid[2][0].rawValue == 2 {
 			return true
 		} else {
 			return false
 		}
 	}
 	
-	func printGrid(grid [[Shapes]]) {
+	func printGrid(grid: [[Shapes]]) {
 		//Prints the grid
 		print("+---+---+---+")
 		
@@ -205,88 +209,85 @@ public class Game {
 	func startGen(grid: [[Shapes]]) {
 		//Start the recursive generation every possible state of the board
 		
-		for row in 0..2 {
-			for tile in 0..2 {
+		for row in 0...2 {
+			for tile in 0...2 {
 				
 				winChances[row][tile] = 0 //Return win chances to zero
 				
 				if grid[row][tile] == Shapes.VOID {
 					var gridClone: [[Shapes]] = cloneGrid(grid: grid)
-					gridClone[row][tile] = Shapes.O;
-					genPossibilities(gridClone, 2, false, row, tile);
+					gridClone[row][tile] = Shapes.O
+					genPossibilities(grid: gridClone, tilesFilled: 2, cpuTurn: false, originalX: row, originalY: tile)
 				}
 			}
 		}
 	}
 	
-	func void genPossibilities(Shapes[][] grid, int tilesFilled,
-				boolean cpuTurn, int originalX, int originalY) {
+	func genPossibilities(grid: [[Shapes]], tilesFilled: Int, cpuTurn: Bool, originalX: Int, originalY: Int) {
 		//Recursively generate every state of the board
 		
 		//Check if a winner was decided
-		if(tilesFilled == 9 && findWinner(grid) == Shapes.VOID) {
-			return;
+		if tilesFilled == 9 && findWinner(grid: grid) == Shapes.VOID {
+			return
 		}
 		//return if cpu wins
-		if(findWinner(grid) == Shapes.O) {
-			return;
+		if findWinner(grid: grid) == Shapes.O {
+			return
 		}
 		//reduced win chances if user wins
-		if(findWinner(grid) == Shapes.X) {
-			winChances[originalX][originalY] -= 9 - tilesFilled;
-			return;
+		if findWinner(grid: grid) == Shapes.X {
+			winChances[originalX][originalY] -= 9 - tilesFilled
+			return
 		}
 		//prioritize blocking the user
-		if(userClose(grid) && cpuTurn) {
-			winChances[originalX][originalY] += 9 - tilesFilled;
+		if userClose(grid: grid) && cpuTurn {
+			winChances[originalX][originalY] += 9 - tilesFilled
 		}
 		
 		//If no winner has been decided, clone the grid and check the next move
-		for(int row = 0; row < grid.length; row++) {
-			for(int tile = 0; tile < grid[row].length; tile++) {
-				if(grid[row][tile] == Shapes.VOID) {
+		for row in 0...2 {
+			for tile in 0...2 {
+				if grid[row][tile] == Shapes.VOID {
 					
-					Shapes[][] gridClone = cloneGrid(grid);
-					if(cpuTurn) {
-						gridClone[row][tile] = Shapes.O;
+					var gridClone: [[Shapes]] = cloneGrid(grid: grid)
+					if cpuTurn {
+						gridClone[row][tile] = Shapes.O
 					} else {
-						gridClone[row][tile] = Shapes.X;
+						gridClone[row][tile] = Shapes.X
 					}
 					
-					genPossibilities(gridClone, tilesFilled + 1,
-							!cpuTurn, originalX, originalY);
+					genPossibilities(grid: gridClone, tilesFilled: tilesFilled + 1, cpuTurn: !cpuTurn, originalX: originalX, originalY: originalY);
 				}
 			}
 		}
 	}
 	
-	func void choosePlay() {
+	func choosePlay() {
 		//Chooses the play that has the highest chance of success
 		
-		int[] chance = new int[2];
+		var chance = [0, 0]
 		
 		//Find the best possible move
-		for(int row = 0; row < winChances.length; row++) {
-			for(int tile = 0; tile < winChances[row].length; tile++) {
+		for row in 0...2 {
+			for tile in 0...2 {
 				//Find a valid empty space to start checking
-				if(grid[chance[0]][chance[1]] != Shapes.VOID) {
-					chance[0] = row;
-					chance[1] = tile;
+				if grid[chance[0]][chance[1]] != Shapes.VOID {
+					chance[0] = row
+					chance[1] = tile
 				}
-				if(grid[row][tile] == Shapes.VOID && 
-						winChances[row][tile] > winChances[chance[0]][chance[1]]) {
-					chance[0] = row;
-					chance[1] = tile;
+				if grid[row][tile] == Shapes.VOID && winChances[row][tile] > winChances[chance[0]][chance[1]] {
+					chance[0] = row
+					chance[1] = tile
 				}
 			}
 		}
 		
 		//Place a shape
-		if(grid[chance[0]][chance[1]] == Shapes.VOID) {
-			grid[chance[0]][chance[1]] = Shapes.O;
+		if grid[chance[0]][chance[1]] == Shapes.VOID {
+			grid[chance[0]][chance[1]] = Shapes.O
 		}
 	}
 }
 
-Game game = new Game()
+let game = Game()
 game.playGame()
