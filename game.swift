@@ -60,7 +60,6 @@ public class Game {
 		
 		printGrid(grid: grid)
 		placeShape()
-		printGrid(grid: grid)
 		
 		var filledTiles: Int = 1
 		var cpuTurn: Bool = true
